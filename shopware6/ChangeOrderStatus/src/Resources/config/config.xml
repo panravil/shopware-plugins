@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/platform/trunk/src/Core/System/SystemConfig/Schema/config.xsd">
+
+    <card>
+        <title>Configuration</title>
+        <title lang="de-DE">Configuratie</title>
+        <component name="sw-entity-multi-id-select">
+            <name>PaymentMethods</name>
+            <entity>payment_method</entity>
+            <label>Choose payment methods which will be ignored in the plugin</label>
+        </component>
+    </card>
+</config>
