@@ -1,0 +1,46 @@
+{extends file='parent:frontend/checkout/cart.tpl'}
+{block name='frontend_checkout_cart_panel'}
+    <div class="panel has--border">
+        <div class="panel--body is--rounded dddddd">
+
+            {* Product table header *}
+            {block name='frontend_checkout_cart_cart_head'}
+                {include file="frontend/checkout/cart_header.tpl"}
+            {/block}
+
+            {* Basket items *}
+            {foreach $sBasket.content as $sBasketItem}
+                {block name='frontend_checkout_cart_item'}
+                    {include file='frontend/checkout/cart_item.tpl' isLast=$sBasketItem@last}
+                {/block}
+            {/foreach}
+            <div class="table--tr block-group row--product">
+                <div class="column--product">
+                    <div class="panel--td column--image"></div>
+                    <div class="panel--td table--content">
+                        <a class="content--title">
+                            {s name="credit_note" namespace="backend/static/doc_type"}{/s}
+                        </a>
+                    </div>
+                </div>
+                <div class="panel--td column--quantity is--align-right"></div>
+                <div class="column--unit-price-custom"></div>
+                <div class="column--total-price-custom">
+                    <div class="panel--td column--total-price is--align-right">
+                        <div class="column--label total-price--label">
+                            {s name="CartColumnTotal" namespace="frontend/checkout/cart_header"}{/s}
+                        </div>
+                        {if $sBasket.DiscountPrice > 0}-  {/if}{$sBasket.DiscountPrice|currency}
+                    </div>
+                </div>
+                <div class="panel--td column--actions"></div>
+            </div>
+
+
+            {* Product table footer *}
+            {block name='frontend_checkout_cart_cart_footer'}
+                {include file="frontend/checkout/cart_footer.tpl"}
+            {/block}
+        </div>
+    </div>
+{/block}

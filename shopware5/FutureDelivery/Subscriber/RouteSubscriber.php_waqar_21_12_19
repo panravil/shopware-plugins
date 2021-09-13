@@ -1,0 +1,582 @@
+<?php
+
+namespace FutureDelivery\Subscriber;
+
+use Doctrine\Common\Util\Debug;
+use Enlight\Event\SubscriberInterface;
+use Shopware\Components\Plugin\ConfigReader;
+use Enlight_Event_EventArgs;
+use Enlight_Hook_HookArgs;
+use Shopware\Components\Theme\LessDefinition;
+use Doctrine\Common\Collections\ArrayCollection;
+use sBasket;
+
+class RouteSubscriber implements SubscriberInterface
+{
+
+    private $pluginDirectory;
+	
+	public function __construct($pluginName, $pluginDirectory)
+    {
+        $this->pluginDirectory = $pluginDirectory;
+    }
+	
+    public static function getSubscribedEvents()
+    {
+        return [
+			'Enlight_Controller_Action_PostDispatchSecure_Frontend_Checkout' => 'onPostDispatch',
+			'Enlight_Controller_Action_PostDispatchSecure_Frontend_Listing' => 'onFrontendListing',
+            'Theme_Compiler_Collect_Plugin_Javascript' => 'addJsFiles',
+			'Enlight_Controller_Action_PostDispatchSecure_Frontend_Detail' => 'onFrontendDetail',
+			'Shopware_Controllers_Frontend_Checkout::ajaxAddArticleCartAction::before' => 'onAddArticleInCartBefore',
+			'Shopware_Controllers_Frontend_Checkout::ajaxAddArticleCartAction::after' => 'onAddArticleInCartAfter',
+			'Shopware_Controllers_Frontend_Checkout::changeQuantityAction::before' => 'onChangeQuantityAction',
+			'Shopware_Controllers_Frontend_Checkout::changeQuantityAction::after' => 'onChangeQuantityActionAfter',
+			'Shopware_Controllers_Frontend_Checkout::getInstockInfo::replace' => 'ongetstockinfo',
+			'sOrder::sSaveOrder::before'=> 'beforeSaveOrder',
+			'Shopware_Modules_Order_SendMail_FilterVariables' => 'onSendOrderMail',
+        ];
+    }
+	
+    /**
+     * Provide the file collection for js files
+     *
+     * @param Enlight_Event_EventArgs $args
+
+     * @return \Doctrine\Common\Collections\ArrayCollection
+
+     */
+	public function addJsFiles(Enlight_Event_EventArgs $args)
+    {
+        $jsFiles = array($this->pluginDirectory . '/Resources/views/frontend/_public/src/js/task.js');
+        return new ArrayCollection($jsFiles);
+    }
+	
+	public function onFrontendDetail(Enlight_Event_EventArgs $args)
+    {		
+        Shopware()->Front()->Response()->setHeader('Cache-Control', 'private, no-cache');
+        $view = $args->getSubject()->View();
+		$view->addTemplateDir($this->pluginDirectory . '/Resources/views');
+    }
+	
+	public function onAddArticleInCartBefore(Enlight_Hook_HookArgs $args)
+    {
+		
+		$controller = $args->getSubject();
+        $request = $controller->Request();
+		
+		$qty = $request->getParam('sQuantity');
+		$qty2 = $request->getParam('sQuantity2');
+		$qty3 = $request->getParam('sQuantity3');
+		
+		$quantity = $request->getParam('sQuantity');
+		if(!is_null($qty2) && is_null($qty3))
+		{
+			$quantity = ($qty+$qty2);
+		}
+		elseif(!is_null($qty3) && is_null($qty2))
+		{
+			$quantity = ($qty+$qty3);
+		}
+		elseif(!is_null($qty3) && !is_null($qty2))
+		{
+			$quantity = ($qty+$qty2+$qty3);
+		}
+		
+		
+		$orderNumber = $request->getParam('sAdd');
+		$articleObj = Shopware()->Modules()->Articles()->sGetProductByOrdernumber($orderNumber);
+		$maxpurchase = $articleObj['maxpurchase'];
+		
+		if(isset($maxpurchase) && $quantity > $maxpurchase)
+		{
+			// Accessing AttributeID
+			$session = Shopware()->Session();
+			$sql = "SELECT id,quantity FROM s_order_basket WHERE sessionID = ? AND ordernumber='$orderNumber'";
+			$basketRow = Shopware()->Db()->fetchAll($sql, [Shopware()->Session()->get('sessionId')]);
+			
+			if(count($basketRow) > 0)
+			{
+				$newQuantity  = ($basketRow[0]['quantity'] + $quantity);
+				if($newQuantity > $maxpurchase)
+				{
+					$request->setParam('sQuantity',$basketRow[0]['quantity']);
+				}
+			}
+			else
+			{
+				//Get Request Parameters
+				$qty = $request->getParam('sQuantity');
+				$qty2 = $request->getParam('sQuantity2');
+				$qty3 = $request->getParam('sQuantity3');
+				
+				//Adding future Quantity in basket attribute
+				if(!is_null($qty2) && is_null($qty3))
+				{
+					
+					$quantity = ($qty+$qty2);
+					$request->setParam('sQuantity',$quantity);
+					
+				}
+				elseif(!is_null($qty3) && is_null($qty2))
+				{
+					
+					$quantity = ($qty+$qty3);
+					$request->setParam('sQuantity',$quantity);
+					
+				}
+				elseif(!is_null($qty3) && !is_null($qty2))
+				{
+					
+					$quantity = ($qty+$qty2+$qty3);
+					$request->setParam('sQuantity',$quantity);
+
+				}
+			}
+			
+		}
+		else
+		{ 
+			$session = Shopware()->Session();
+			$sql = "SELECT id,quantity FROM s_order_basket WHERE sessionID = ? AND ordernumber='$orderNumber'";
+			$basketRow = Shopware()->Db()->fetchAll($sql, [Shopware()->Session()->get('sessionId')]);
+			
+			if(count($basketRow) > 0)
+			{
+				$newQuantity  = ($basketRow[0]['quantity'] + $quantity);
+				if($newQuantity > $maxpurchase)
+				{
+					$request->setParam('sQuantity',$basketRow[0]['quantity']);
+					$request->setParam('sQuantity2',0);
+					$request->setParam('sQuantity3',0);
+				}
+				else
+				{
+					$request->setParam('sQuantity',$quantity);
+				}
+			}
+			else
+			{
+				//Get Request Parameters
+				$qty = $request->getParam('sQuantity');
+				$qty2 = $request->getParam('sQuantity2');
+				$qty3 = $request->getParam('sQuantity3');
+				
+				//Adding future Quantity in basket attribute
+				if(!is_null($qty2) && is_null($qty3))
+				{
+					
+					$quantity = ($qty+$qty2);
+					$request->setParam('sQuantity',$quantity);
+					
+				}
+				elseif(!is_null($qty3) && is_null($qty2))
+				{
+					
+					$quantity = ($qty+$qty3);
+					$request->setParam('sQuantity',$quantity);
+					
+				}
+				elseif(!is_null($qty3) && !is_null($qty2))
+				{
+					
+					$quantity = ($qty+$qty2+$qty3);
+					$request->setParam('sQuantity',$quantity);
+
+				}
+			}
+				
+		}
+		
+
+    }
+	
+	
+	public function onAddArticleInCartAfter(Enlight_Hook_HookArgs $args)
+    {
+        $controller = $args->getSubject();
+        $request = $controller->Request();
+		//Show All Parameters
+		//$request->getParams()
+				
+		// Accessing AttributeID
+	    $session = Shopware()->Session();
+		$sql = "SELECT id FROM s_order_basket WHERE sessionID = ? ORDER BY id DESC LIMIT 1";
+        $basketRow = Shopware()->Db()->fetchAll($sql, [Shopware()->Session()->get('sessionId')]);
+		//$row[0]["id"];
+		$sql = "SELECT id,basket_quantity_2,basket_quantity_3 FROM s_order_basket_attributes WHERE basketID = ? ORDER BY id DESC LIMIT 1";
+        $attributesRow = Shopware()->Db()->fetchAll($sql, [$basketRow[0]["id"]]);
+		$attributeID = $attributesRow[0]['id'];
+		
+		$orderNumber = $request->getParam('sAdd');
+		$articleObj = Shopware()->Modules()->Articles()->sGetProductByOrdernumber($orderNumber);
+		$maxpurchase = $articleObj['maxpurchase'];
+		
+		if(isset($maxpurchase) && $request->getParam('sQuantity') > $maxpurchase)
+		{
+			$sessionID = Shopware()->Session()->get('sessionId');
+			$basketID = $basketRow[0]["id"];
+			$sql1 = "DELETE FROM s_order_basket WHERE sessionID ='$sessionID' AND id =$basketID";
+			Shopware()->Db()->query($sql1);
+			$sql2 = "DELETE FROM s_order_basket_attributes WHERE id = $attributeID";
+			Shopware()->Db()->query($sql2);
+		}
+		else
+		{
+			
+			//Debug 
+			/*echo "<pre>";
+			$result = \Doctrine\Common\Util\Debug::dump($request->getParams(), 2, true, false);
+			print_r($result); 
+			die();*/
+	
+			//Get Request Parameters
+			$qty2 = $request->getParam('sQuantity2');
+			$qty3 = $request->getParam('sQuantity3');
+			if(isset($qty2) && $qty2 == 0)
+			{
+				$qty2 = NULL;
+			}
+			if(isset($qty3) && $qty3 == 0)
+			{
+				$qty3 = NULL;
+			}
+			if(isset($attributesRow[0]['basket_quantity_2']))
+			{
+				$qty2 = ($attributesRow[0]['basket_quantity_2'] + $qty2);
+			}
+			
+			if(isset($attributesRow[0]['basket_quantity_3']))
+			{
+				$qty3 = ($attributesRow[0]['basket_quantity_3'] + $qty3);
+			}
+			
+			
+			//Adding future Quantity in basket attribute
+			if(!is_null($qty2) && is_null($qty3))
+			{
+				$sql = "UPDATE s_order_basket_attributes
+				SET 
+				basket_quantity_2 = $qty2
+				WHERE id = $attributeID";
+			}
+			elseif(!is_null($qty3) && is_null($qty2))
+			{
+				$sql = "UPDATE s_order_basket_attributes
+				SET 
+				basket_quantity_3 = $qty3
+				WHERE id = $attributeID";
+			}
+			elseif(!is_null($qty3) && !is_null($qty2))
+			{
+				$sql = "UPDATE s_order_basket_attributes
+				SET 
+				basket_quantity_2 = $qty2,
+				basket_quantity_3 = $qty3
+				WHERE id = $attributeID";
+			}
+			
+			if(isset($qty2) || isset($qty3))
+			{
+				$res = Shopware()->Db()->query($sql);
+			}
+			
+				
+		}
+			
+		//Debug 
+		/*echo "<pre>";
+		$result = \Doctrine\Common\Util\Debug::dump($view, 2, true, false);
+		print_r($result); 
+		die();*/
+    }
+	
+	public function onPostDispatch(\Enlight_Controller_ActionEventArgs $args)
+    {
+		//$action = $args->getSubject()->Request()->getActionName();
+		Shopware()->Front()->Response()->setHeader('Cache-Control', 'private, no-cache');
+		$view = $args->getSubject()->View();
+		$basket = $view->getAssign('sBasket');
+		$basketData = $basket['content'];
+		$newBasketData = [];
+		
+		foreach($basketData as $data)
+		{
+			//$data["isf_here"] = "working 123";
+			
+			$sql = "SELECT basket_quantity_2,basket_quantity_3 FROM s_order_basket_attributes WHERE basketID = ? ORDER BY id DESC LIMIT 1";
+			$rows = Shopware()->Db()->fetchAll($sql, [$data["id"]]);
+			foreach($rows as $row)
+			{
+				$data["basket_quantity_2"] = $row["basket_quantity_2"];
+				$data["basket_quantity_3"] = $row["basket_quantity_3"];
+			}
+			
+			$newBasketData[] = $data;
+		} 
+		
+		$basketData = $newBasketData;
+		$basket['content'] = $basketData; 
+		
+		$view->assign('sBasket', $basket);
+		
+		$view->addTemplateDir($this->pluginDirectory . '/Resources/views');
+		
+		//Debug 
+		/*echo "<pre>";
+		$result = \Doctrine\Common\Util\Debug::dump($basket['content'], 2, true, false);
+		print_r($result); 
+		die();*/
+	}
+	
+	/**
+     * @param \Enlight_Event_EventArgs $args
+     * Handle order confirmation mail
+     */
+    public function onSendOrderMail(\Enlight_Event_EventArgs $args)
+    {
+		
+		//Debug 
+		
+        $variables = $args->getReturn();
+
+		$mainCartSummary = $_SESSION['CartSummery'];
+        echo "<pre>";
+		$resultargs = \Doctrine\Common\Util\Debug::dump($_SESSION);
+		$result = \Doctrine\Common\Util\Debug::dump($mainCartSummary, 2, true, false);
+		$resultfirst = $mainCartSummary['firstTotal'];
+		$resultsecond = $mainCartSummary['secondTotal'];
+		$resultthird = $mainCartSummary['thirdTotal'];
+		print_r($result); 
+		print_r($resultargs); 
+		print_r($resultfirst); 
+		print_r($resultsecond); 
+		print_r($resultthird); 
+		foreach($variables['sOrderDetails'] as $orderIndex => $orderDetails) {
+			
+				$ordernumber = $orderDetails['ordernumber'];
+                /*$packageDetails = ["purchasesteps" => $orderDetails['additional_details']['purchasesteps'], "purchaseunit" => $orderDetails['additional_details']['purchaseunit'], "referenceunit" => $orderDetails['additional_details']['referenceunit'],
+				"packUnit" => $orderDetails['additional_details']['packUnit'], "sUnit" => $orderDetails['additional_details']['sUnit']['description']];
+                $variables['sOrderDetails'][$orderIndex]['futureDelivery'] = $packageDetails;*/
+        }
+		$cartDetails = ["firstTotal" => $resultfirst, "secondTotal" => $resultsecond, "thirdTotal" => $resultthird];
+		$variables['sOrderDetails']['futureDeliveryTotal'] = $cartDetails;
+		
+        $args->setReturn($variables);
+    }
+	
+	public function onChangeQuantityAction(Enlight_Hook_HookArgs $args)
+	{
+		$controller = $args->getSubject();
+        $request = $controller->Request();
+		
+		//Get Request Parameters
+		$qty = $request->getParam('sQuantity');
+		$qty2 = $request->getParam('sQuantity2');
+		$qty3 = $request->getParam('sQuantity3');
+		
+		
+		$basketID = $request->getParam('sArticle');
+		$session = Shopware()->Session();
+		$sessionID = Shopware()->Session()->get('sessionId');
+		
+		$sql = "SELECT id,ordernumber,quantity FROM s_order_basket WHERE sessionID ='$sessionID' AND id =$basketID";
+		$basketRow = Shopware()->Db()->fetchAll($sql);
+		
+		$sql = "SELECT id,basket_quantity_2,basket_quantity_3 FROM s_order_basket_attributes WHERE basketID =$basketID";
+        $attributesRow = Shopware()->Db()->fetchAll($sql);
+		$attributeID = $attributesRow[0]['id'];
+		
+		$orderNumber = $basketRow[0]['ordernumber'];
+		$articleObj = Shopware()->Modules()->Articles()->sGetProductByOrdernumber($orderNumber);
+		$maxpurchase = $articleObj['maxpurchase'];
+		
+		if(isset($maxpurchase) && $request->getParam('sQuantity') > $maxpurchase)
+		{
+			//Adding future Quantity in basket attribute
+			$quantity = $basketRow[0]['quantity'];
+			$request->setParam('sQuantity',$quantity);
+			$request->setParam('sQuantity2',0);
+			$request->setParam('sQuantity3',0);
+			
+		}
+		else
+		{
+			
+			//Adding future Quantity in basket attribute
+			if(!is_null($qty2) && is_null($qty3))
+			{
+				$quantity = ($qty+$qty2);
+				$request->setParam('sQuantity',$quantity);
+			}
+			elseif(!is_null($qty3) && is_null($qty2))
+			{
+				$quantity = ($qty+$qty3);
+				$request->setParam('sQuantity',$quantity);
+			}
+			elseif(!is_null($qty3) && !is_null($qty2))
+			{
+				$quantity = ($qty+$qty2+$qty3);
+				$request->setParam('sQuantity',$quantity);
+			}
+			
+		}
+		
+		//Debug 
+		/*echo "<pre>";
+		$result = \Doctrine\Common\Util\Debug::dump($request->getParams(), 2, true, false);
+		print_r($result); 
+		die();*/
+	}
+	
+	
+	
+	public function onChangeQuantityActionAfter(Enlight_Hook_HookArgs $args)
+    {
+        $controller = $args->getSubject();
+        $request = $controller->Request();
+		//Show All Parameters
+		//$request->getParams()
+		
+		$basketID = $request->getParam('sArticle');
+		$session = Shopware()->Session();
+		$sessionID = Shopware()->Session()->get('sessionId');
+		
+		$sql = "SELECT id,ordernumber FROM s_order_basket WHERE sessionID ='$sessionID' AND id =$basketID";
+		$basketRow = Shopware()->Db()->fetchAll($sql);
+		
+		$sql = "SELECT id,basket_quantity_2,basket_quantity_3 FROM s_order_basket_attributes WHERE basketID =$basketID";
+        $attributesRow = Shopware()->Db()->fetchAll($sql);
+		$attributeID = $attributesRow[0]['id'];
+		
+		$orderNumber = $basketRow[0]['ordernumber'];
+		$articleObj = Shopware()->Modules()->Articles()->sGetProductByOrdernumber($orderNumber);
+		$maxpurchase = $articleObj['maxpurchase'];
+		
+		if(isset($maxpurchase) && $request->getParam('sQuantity') > $maxpurchase)
+		{
+			/*$sessionID = Shopware()->Session()->get('sessionId');
+			$basketID = $basketRow[0]["id"];
+			$sql1 = "DELETE FROM s_order_basket WHERE sessionID ='$sessionID' AND id =$basketID";
+			Shopware()->Db()->query($sql1);
+			$sql2 = "DELETE FROM s_order_basket_attributes WHERE id = $attributeID";
+			Shopware()->Db()->query($sql2);*/
+		}
+		else
+		{
+			//Get Request Parameters
+			$qty2 = $request->getParam('sQuantity2');
+			$qty3 = $request->getParam('sQuantity3');
+			
+			if(isset($qty2) && $qty2 == 0)
+			{
+				$qty2 = NULL;
+			}
+			if(isset($qty3) && $qty3 == 0)
+			{
+				$qty3 = NULL;
+			}
+			
+			//Adding future Quantity in basket attribute
+			if(!is_null($qty2) && is_null($qty3))
+			{
+				$sql = "UPDATE s_order_basket_attributes
+				SET 
+				basket_quantity_2 = $qty2
+				WHERE id = $attributeID";
+			}
+			elseif(!is_null($qty3) && is_null($qty2))
+			{
+				$sql = "UPDATE s_order_basket_attributes
+				SET 
+				basket_quantity_3 = $qty3
+				WHERE id = $attributeID";
+			}
+			elseif(!is_null($qty3) && !is_null($qty2))
+			{
+				$sql = "UPDATE s_order_basket_attributes
+				SET 
+				basket_quantity_2 = $qty2,
+				basket_quantity_3 = $qty3
+				WHERE id = $attributeID";
+			}
+			
+			if(isset($qty2) || isset($qty3))
+			{
+				$res = Shopware()->Db()->query($sql);
+			}
+			
+		}
+		
+		//Debug 
+		/*echo "<pre>";
+		$result = \Doctrine\Common\Util\Debug::dump($view, 2, true, false);
+		print_r($result); 
+		die();*/
+    }
+	
+	
+	
+	public function onFrontendListing(Enlight_Event_EventArgs $args)
+    {
+        $view = $args->getSubject()->View();
+		$view->addTemplateDir($this->pluginDirectory . '/Resources/views');
+    }
+	
+	
+	
+	public function ongetstockinfo(Enlight_Hook_HookArgs $args)
+    {
+		//Debug 
+		$qtyCart = $args->get('quantity');
+        $orderNumber = $args->get('orderNumber');
+        $articleObj = Shopware()->Modules()->Articles()->sGetProductByOrdernumber($orderNumber);
+		$maxpurchase = $articleObj['maxpurchase'];
+		
+		$controller = $args->getSubject();
+        $request = $controller->Request();
+		$qty = $request->getParam('sQuantity');
+		if($qty > $maxpurchase)
+		{
+			$args->setReturn(Shopware()->Snippets()->getNamespace('frontend')->get('CheckoutArticleNoStock',
+			'Unfortunately we can not deliver the desired product in sufficient quantity', true));
+		}
+		else
+		{
+			$args->getSubject()->executeParent(
+				$args->getMethod(),
+				$args->getArgs()
+			);
+		}
+		
+    }
+
+
+	
+	public function beforeSaveOrder(Enlight_Hook_HookArgs $args)
+	{
+		$controller = $args->getSubject();
+        //$request = $controller->Request();
+		$_SESSION["BasketData"] = $controller->sBasketData;
+		
+		$CartSummery = [];
+		$CartSummery['firstTotal'] = $_REQUEST['firstTotal'];
+		$CartSummery['secondTotal'] = $_REQUEST['secondTotal'];
+		$CartSummery['thirdTotal'] = $_REQUEST['thirdTotal'];
+		
+		$_SESSION['CartSummery'] = $CartSummery;
+		
+		
+		//Debug 
+		/*echo "<pre>";
+		$result = \Doctrine\Common\Util\Debug::dump($_SESSION, 2, true, false);
+		print_r($result); 
+		die();*/
+		
+
+	}
+
+		
+	
+	
+}

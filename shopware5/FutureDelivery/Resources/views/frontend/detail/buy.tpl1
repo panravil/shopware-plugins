@@ -1,0 +1,84 @@
+{extends file="parent:frontend/detail/buy.tpl"}
+
+{* Quantity selection *}
+{block name='frontend_detail_buy_quantity'}
+
+{if isset($sArticle.delivery_date_2) OR isset($sArticle.delivery_date_3)}  
+	<div class="isf-quantity-label-wrapper" >
+		<div class="isf-quantity-label">Per sofort  <i class="icon--info2" title="" style="display:block;"></i>  </div>
+		<div class="isf-quantity-label">{if isset($sArticle.delivery_date_2)} {$sArticle.delivery_date_2} {/if} <i class="icon--info2" title="" style="display:block;"></i> </div>
+		<div class="isf-quantity-label">{if isset($sArticle.delivery_date_3)} {$sArticle.delivery_date_3} {/if}  <i class="icon--info2" title="" style="display:block;"></i>  </div>
+	</div>
+{/if}
+
+	{$smarty.block.parent}
+{/block}
+
+
+{block name='frontend_detail_buy_quantity_select'}
+
+    {*Original quantity box start*}
+		<input class="vm-listing-quantity" type="text" name="sQuantity" min="{$sArticle.minpurchase}" max="{$maxQuantity}"
+			   value="0">
+
+		<div class="vm-box-product-quantity isf-quantity-box {if $sArticle.attr38 eq '1'} vm-is-container-only{/if}{if $sArticle.attr22} vm-is-container-or-bottle{/if} vm-box-is-wood-{$containerMaterial}"
+				{if $sArticle.attr23 > 0 and !$isWhiskey} data-container-size="{$sArticle.attr23}"{/if}
+			 data-container-is-wood="{$containerMaterial}">
+			<div class="vm-max-order-value" style="display: none">
+				{$sArticle.maxpurchase}
+			</div>
+			<div class="vm-box-product-quantity-options" style="left:-200px;" id="vm-box-product-quantity-options">
+				<div id="vm-box-product-quantity-options-wrapper">
+				</div>
+			</div>
+			<span onclick="ToggleQuantityOptionsVisibility(false,''), $(this)">0</span>
+		</div>
+	{*Original quantity box end*}
+	
+	{if isset($sArticle.delivery_date_2)}
+		<input id="sQuantity2" type="hidden" name="sQuantity2" min="{$sArticle.minpurchase}" max="{$maxQuantity}"
+			   value="0">
+
+		<div class="vm-box-product-quantity isf-quantity-box futureDeliveryBox {if $sArticle.attr38 eq '1'} vm-is-container-only{/if}{if $sArticle.attr22} vm-is-container-or-bottle{/if} vm-box-is-wood-{$containerMaterial}"
+				{if $sArticle.attr23 > 0 and !$isWhiskey} data-container-size="{$sArticle.attr23}"{/if}
+			 data-container-is-wood="{$containerMaterial}">
+			<div class="vm-max-order-value" style="display: none">
+				{$sArticle.maxpurchase}
+			</div>
+			<div class="vm-box-product-quantity-options"  style="left:-200px;" id="vm-box-product-quantity-options">
+				<div id="vm-box-product-quantity-options-wrapper">
+				</div>
+			</div>
+			<span id="sQuantity2Span" >0</span>
+			
+		</div>
+	{/if}
+	
+	{if isset($sArticle.delivery_date_3)}
+	<input id="sQuantity3" type="hidden" name="sQuantity3" min="{$sArticle.minpurchase}" max="{$maxQuantity}"
+		   value="0">
+
+	<div class="vm-box-product-quantity isf-quantity-box futureDeliveryBox {if $sArticle.attr38 eq '1'} vm-is-container-only{/if}{if $sArticle.attr22} vm-is-container-or-bottle{/if} vm-box-is-wood-{$containerMaterial}"
+			{if $sArticle.attr23 > 0 and !$isWhiskey} data-container-size="{$sArticle.attr23}"{/if}
+		 data-container-is-wood="{$containerMaterial}">
+		<div class="vm-max-order-value" style="display: none">
+			{$sArticle.maxpurchase}
+		</div>
+		<div class="vm-box-product-quantity-options" style="left:-190px;" id="vm-box-product-quantity-options">
+			<div id="vm-box-product-quantity-options-wrapper">
+			</div>
+		</div>
+		<span id="sQuantity3Span" >0</span>
+		
+	</div>
+	{/if}
+	
+{/block}
+
+
+{* "Buy now" button *}
+{block name="frontend_detail_buy_button"}
+<div class="isf_buy_button_container">
+	{$smarty.block.parent}
+</div>
+{/block}

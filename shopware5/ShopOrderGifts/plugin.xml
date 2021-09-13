@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../../../engine/Shopware/Components/Plugin/schema/plugin.xsd">
+
+    <label lang="de">Warenkorb Geschenke - Trendpoint</label>
+    <label lang="en">Order Gifts - Trendpoint</label>
+
+    <version>2.0.0</version>
+    <link>www.trendpoint.ch</link>
+    <author>TrendPoint GmbH</author>
+    <copyright>TrendPoint GmbH</copyright>
+    <compatibility minVersion="5.2.0" />
+    <description></description>
+
+    <changelog version="1.1.0">
+        <changes lang="de">Erstveröffentlichung</changes>
+        <changes lang="en">First release</changes>
+    </changelog>
+    <changelog version="2.0.0">
+        <changes lang="de">Improved streams</changes>
+        <changes lang="en">Improved streams</changes>
+    </changelog>
+
+</plugin>

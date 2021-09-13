@@ -1,0 +1,78 @@
+{extends file="parent:frontend/checkout/items/product.tpl"}
+
+{block name='frontend_checkout_cart_item_quantity_selection'}
+	{if !$sBasketItem.additional_details.laststock || ($sBasketItem.additional_details.laststock && $sBasketItem.additional_details.instock > 0)}
+		<form {*{if isset($sBasketItem.basket_quantity_2) || isset($sBasketItem.basket_quantity_3)}{if $sBasketItem.basket_quantity_2 gt 0 || $sBasketItem.basket_quantity_3 gt 0} onsubmit="return formSubmitStoper(event)" {/if}{/if}*} id="vmCartQuantity_{$sBasketItem.ordernumber}" name="basket_change_quantity{$sBasketItem.id}" class="select-field isf-select-field" method="post" action="{url action='changeQuantity' sTargetAction=$sTargetAction}">
+
+			{if ($sBasketItem.additional_details.attr22 eq '6er Holzkiste') or 
+				($sBasketItem.additional_details.attr22 eq '12er Holzkiste') or
+				($sBasketItem.additional_details.attr22 eq 'caisse 6 bts.') or
+				($sBasketItem.additional_details.attr22 eq 'caisse 12 bts.')
+			}
+				{$containerMaterial = 'true'}
+
+			{else}
+				{$containerMaterial = 'false'}
+			{/if}
+			
+			{if isset($sBasketItem.additional_details.delivery_date_2) OR isset($sBasketItem.additional_details.delivery_date_3)} 
+				<span class="isf-futureDeliveryBox-span">Per sofort</span>
+			{/if}
+			<input class="vm-cart-item-quantity" data-auto-submit="true" type="hidden" name="sQuantity" min="{$sBasketItem.minpurchase}" max="{$sBasketItem.maxpurchase}" value='{if isset($sBasketItem.basket_quantity_2) && isset($sBasketItem.basket_quantity_3)}{if $sBasketItem.basket_quantity_2 gt 0 || $sBasketItem.basket_quantity_3 gt 0}{math equation="(( x - y ) - z )" x=$sBasketItem.quantity y=$sBasketItem.basket_quantity_2 z=$sBasketItem.basket_quantity_3 }{/if}{else}{$sBasketItem.quantity}{/if}'>
+
+			<div class="vm-box-product-quantity {if $sBasketItem.additional_details.attr38 eq '1'} vm-is-container-only{/if}{if $sBasketItem.additional_details.attr22} vm-is-container-or-bottle{/if}vm-box-is-wood-{$containerMaterial}" {if $sBasketItem.additional_details.attr23 > 0} data-container-size="{$sBasketItem.additional_details.attr23}"{/if} data-container-is-wood="{$containerMaterial}">
+				<div class="vm-box-product-quantity-options" id="vm-box-product-quantity-options">
+					<div id="vm-box-product-quantity-options-wrapper" data-current-quantity='{if isset($sBasketItem.basket_quantity_2) && isset($sBasketItem.basket_quantity_3)}{if $sBasketItem.basket_quantity_2 gt 0 || $sBasketItem.basket_quantity_3 gt 0}{math equation="(( x - y ) - z )" x=$sBasketItem.quantity y=$sBasketItem.basket_quantity_2 z=$sBasketItem.basket_quantity_3 }{/if}{else}{$sBasketItem.quantity}{/if}'>
+					</div>
+				</div>
+				
+				<span class="checkOutSpan" onclick="ToggleQuantityOptionsVisibility(false, '#vmCartQuantity_{$sBasketItem.ordernumber} .vm-box-product-quantity', $(this))">
+					{if isset($sBasketItem.basket_quantity_2) && isset($sBasketItem.basket_quantity_3)}{if $sBasketItem.basket_quantity_2 gt 0 || $sBasketItem.basket_quantity_3 gt 0}{math equation="(( x - y ) - z )" x=$sBasketItem.quantity y=$sBasketItem.basket_quantity_2 z=$sBasketItem.basket_quantity_3 }{/if}{else}{$sBasketItem.quantity}{/if}
+				</span>
+				
+			</div>
+			
+			{if isset($sBasketItem.additional_details.delivery_date_2)} 
+			<span class="isf-futureDeliveryBox-span">{$sBasketItem.additional_details.delivery_date_2}</span>
+			
+			<input id="sQuantity2" type="hidden" name="sQuantity2" min="{$sBasketItem.minpurchase}" max="{$sBasketItem.maxpurchase}" value='{if isset($sBasketItem.basket_quantity_2)}{if $sBasketItem.basket_quantity_2 gt 0}{$sBasketItem.basket_quantity_2}{/if}{else}0{/if}'>
+
+			<div class="vm-box-product-quantity futureDeliveryBox {if $sBasketItem.additional_details.attr38 eq '1'} vm-is-container-only{/if}{if $sBasketItem.additional_details.attr22} vm-is-container-or-bottle{/if}vm-box-is-wood-{$containerMaterial}" {if $sBasketItem.additional_details.attr23 > 0} data-container-size="{$sBasketItem.additional_details.attr23}"{/if} data-container-is-wood="{$containerMaterial}">
+				<div class="vm-box-product-quantity-options" id="vm-box-product-quantity-options">
+					<div id="vm-box-product-quantity-options-wrapper" data-current-quantity='{if isset($sBasketItem.basket_quantity_2) && isset($sBasketItem.basket_quantity_3)}{if $sBasketItem.basket_quantity_2 gt 0 || $sBasketItem.basket_quantity_3 gt 0}{math equation="(( x - y ) - z )" x=$sBasketItem.quantity y=$sBasketItem.basket_quantity_2 z=$sBasketItem.basket_quantity_3 }{/if}{else}{$sBasketItem.quantity}{/if}'>
+					</div>
+				</div>
+				
+				<span id="sQuantity2Span" onclick="ToggleQuantityOptionsVisibility(false, '#vmCartQuantity_{$sBasketItem.ordernumber} .vm-box-product-quantity', $(this))">
+					{if isset($sBasketItem.basket_quantity_2)}{if $sBasketItem.basket_quantity_2 gt 0}{$sBasketItem.basket_quantity_2}{/if}{else}0{/if}
+				</span>
+				
+			</div>
+			{/if}
+			
+			{if isset($sBasketItem.additional_details.delivery_date_3)} 
+			<span class="isf-futureDeliveryBox-span">{$sBasketItem.additional_details.delivery_date_3}</span>
+			
+			<input id="sQuantity3" type="hidden" name="sQuantity3" min="{$sBasketItem.minpurchase}" max="{$sBasketItem.maxpurchase}" value='{if isset($sBasketItem.basket_quantity_3)}{if $sBasketItem.basket_quantity_3 gt 0}{$sBasketItem.basket_quantity_3}{/if}{else}0{/if}'>
+
+			<div class="vm-box-product-quantity futureDeliveryBox {if $sBasketItem.additional_details.attr38 eq '1'} vm-is-container-only{/if}{if $sBasketItem.additional_details.attr22} vm-is-container-or-bottle{/if}vm-box-is-wood-{$containerMaterial}" {if $sBasketItem.additional_details.attr23 > 0} data-container-size="{$sBasketItem.additional_details.attr23}"{/if} data-container-is-wood="{$containerMaterial}">
+				<div class="vm-box-product-quantity-options" id="vm-box-product-quantity-options">
+					<div id="vm-box-product-quantity-options-wrapper" data-current-quantity='{if isset($sBasketItem.basket_quantity_2) && isset($sBasketItem.basket_quantity_3)}{if $sBasketItem.basket_quantity_2 gt 0 || $sBasketItem.basket_quantity_3 gt 0}{math equation="(( x - y ) - z )" x=$sBasketItem.quantity y=$sBasketItem.basket_quantity_2 z=$sBasketItem.basket_quantity_3 }{/if}{else}{$sBasketItem.quantity}{/if}'>
+					</div>
+				</div>
+				
+				<span id="sQuantity3Span" onclick="ToggleQuantityOptionsVisibility(false, '#vmCartQuantity_{$sBasketItem.ordernumber} .vm-box-product-quantity', $(this))" >
+					{if isset($sBasketItem.basket_quantity_3)}{if $sBasketItem.basket_quantity_3 gt 0}{$sBasketItem.basket_quantity_3}{/if}{else}0{/if}
+				</span>
+				
+			</div>
+			{/if}
+			
+			<input type="hidden" name="sArticle" value="{$sBasketItem.id}" />
+			
+		</form>
+	{else}
+		{s name="CartColumnQuantityEmpty" namespace="frontend/checkout/cart_item"}{/s}
+	{/if}
+{/block}
+

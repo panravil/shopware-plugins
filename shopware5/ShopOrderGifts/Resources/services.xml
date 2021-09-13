@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		   xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+	<parameters>
+        <parameter key="shop_order_gifts.cache_dir">%kernel.cache_dir%/ShopOrderGifts</parameter>
+        <parameter key="shop_order_gifts.view_dir">%shop_order_gifts.plugin_dir%</parameter>
+    </parameters>
+
+	<services>
+		<service id="shop_order_gifts.cache" class="Doctrine\Common\Cache\FilesystemCache">
+            <argument type="string">%shop_order_gifts.cache_dir%</argument>
+        </service>
+
+		<service id="shop_order_gifts.subscriber.frontend" class="ShopOrderGifts\Subscriber\Frontend">
+			<argument type="service" id="service_container"></argument>
+			<argument type="string">%shop_order_gifts.plugin_dir%</argument>
+			<argument type="string">%shop_order_gifts.view_dir%</argument>
+			<argument type="service" id="template" />
+			<tag name="shopware.event_subscriber"/>
+		</service>
+
+		<service id="shop_order_gifts.order_gift" class="ShopOrderGifts\Components\OrderGift">
+			<argument type="service" id="dbal_connection" />
+		</service>
+	</services>
+</container>

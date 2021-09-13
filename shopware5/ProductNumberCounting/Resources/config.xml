@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/shopware/5.3.7/engine/Shopware/Components/Plugin/schema/config.xsd">
+    <elements>
+		<element required="true" type="select" scope="shop">
+            <name>selectDiscountProductStream</name>
+            <label lang="de">Wählen Sie einen Product Stream für die Gutschrift.</label>
+            <label lang="en">Choose a Product Stream for Discounting</label>
+            <store>
+                <![CDATA[Ext.define('selectDiscountProductStream.ShopPageSelect.Form', {
+                    extend: 'Ext.data.Store',
+                    fields: [
+                        { name:'id', type: 'int' },
+                        { name:'name', type: 'string' }
+                    ],
+                    autoLoad: true,
+                    pageSize: 25,
+                    proxy: {
+                        type: 'ajax',
+                        url: window.location.href.substr(0, window.location.href.indexOf('backend')) + 'backend/EntitySearch/search?model=Shopware\\Models\\ProductStream\\ProductStream',
+                        reader: {
+                            type: 'json',
+                            root: 'data',
+                            totalProperty: 'total'
+                        }
+                    }
+                }).create(); me.pageSize=25; me.listeners = {
+                    beforerender: function(component, eOpts){
+                        me.valueField='id';
+                    }
+                }; //new ]]>
+            </store>
+            <options>
+                <valueField>id</valueField>
+                <displayField>name</displayField>
+                <isCustomStore>true</isCustomStore>
+            </options>
+        </element>
+		<element required="true" type="select" scope="shop">
+            <name>selectShippingProductStream</name>
+            <label lang="de">Wählen Sie einen Product Stream für den Versand.</label>
+            <label lang="en">Choose a Product Stream for Shipping</label>
+            <store>
+                <![CDATA[Ext.define('selectShippingProductStream.ShopPageSelect.Form', {
+                    extend: 'Ext.data.Store',
+                    fields: [
+                        { name:'id', type: 'int' },
+                        { name:'name', type: 'string' }
+                    ],
+                    autoLoad: true,
+                    pageSize: 25,
+                    proxy: {
+                        type: 'ajax',
+                        url: window.location.href.substr(0, window.location.href.indexOf('backend')) + 'backend/EntitySearch/search?model=Shopware\\Models\\ProductStream\\ProductStream',
+                        reader: {
+                            type: 'json',
+                            root: 'data',
+                            totalProperty: 'total'
+                        }
+                    }
+                }).create(); me.pageSize=25; me.listeners = {
+                    beforerender: function(component, eOpts){
+                        me.valueField='id';
+                    }
+                }; //new ]]>
+            </store>
+            <options>
+                <valueField>id</valueField>
+                <displayField>name</displayField>
+                <isCustomStore>true</isCustomStore>
+            </options>
+        </element>
+        <element type="button">
+            <name>btn_product_discount1</name>
+            <label lang="de">Wählen die zu rabattierende Artikelmenge</label>
+			<label lang="en">Select the item quantity to be discounted</label>
+        </element>
+		<element type="number" scope="shop">
+			<name>discount_from_value1</name>
+            <label lang="de">Mindestanzahl</label>
+			<label lang="en">Minimum number</label>
+			<options>
+				<minValue>0</minValue>
+			</options>
+		</element>
+		<element type="number" scope="shop">
+			<name>discount_to_value1</name>
+            <label lang="de">Max. Anzahl</label>
+			<label lang="en">Max. Number</label>
+			<options>
+				<minValue>0</minValue>
+			</options>
+		</element>
+		<element type="number" scope="shop">
+			<name>discount_price1</name>
+            <label lang="de">Gutschrift in CHF/EUR</label>
+			<label lang="en">Credit in CHF / EUR</label>
+			<options>
+				<minValue>0</minValue>
+			</options>
+		</element>
+        <element type="button">
+            <name>btn_product_discount2</name>
+            <label lang="de">Wählen die zu rabattierende Artikelmenge</label>
+			<label lang="en">Select the item quantity to be discounted</label>
+        </element>
+		<element type="number" scope="shop">
+			<name>discount_from_value2</name>
+            <label lang="de">Mindestanzahl</label>
+			<label lang="en">Minimum number</label>
+			<options>
+				<minValue>0</minValue>
+			</options>
+		</element>
+		<element type="number" scope="shop">
+			<name>discount_to_value2</name>
+            <label lang="de">Max. Anzahl</label>
+			<label lang="en">Max. Number</label>
+			<options>
+				<minValue>0</minValue>
+			</options>
+		</element>
+		<element type="number" scope="shop">
+			<name>discount_price2</name>
+            <label lang="de">Gutschrift in CHF/EUR</label>
+			<label lang="en">Credit in CHF / EUR</label>
+			<options>
+				<minValue>0</minValue>
+			</options>
+		</element>
+        <element type="button">
+            <name>btn_product_discount3</name>
+            <label lang="de">Wählen die zu rabattierende Artikelmenge</label>
+			<label lang="en">Select the item quantity to be discounted</label>
+        </element>
+		<element type="number" scope="shop">
+			<name>discount_from_value3</name>
+            <label lang="de">Mindestanzahl</label>
+			<label lang="en">Minimum number</label>
+			<options>
+				<minValue>0</minValue>
+			</options>
+		</element>
+		<element type="number" scope="shop">
+			<name>discount_to_value3</name>
+            <label lang="de">Max. Anzahl</label>
+			<label lang="en">Max. Number</label>
+			<options>
+				<minValue>0</minValue>
+			</options>
+		</element>
+		<element type="number" scope="shop">
+			<name>discount_price3</name>
+            <label lang="de">Gutschrift in CHF/EUR</label>
+			<label lang="en">Credit in CHF / EUR</label>
+			<options>
+				<minValue>0</minValue>
+			</options>
+		</element>
+        <element type="button">
+            <name>btn_shipping_free</name>
+            <label lang="de">Wählen eine Artikelmenge für den kostenlosen Versand</label>
+			<label lang="en">Select an item quantity for free shipping</label>
+        </element>
+		<element type="number" scope="shop">
+			<name>shipping_free_from_value</name>
+            <label lang="de">Mindestanzahl</label>
+			<label lang="en">Minimum number</label>
+			<options>
+				<minValue>0</minValue>
+			</options>
+		</element>
+    </elements>
+</config>
