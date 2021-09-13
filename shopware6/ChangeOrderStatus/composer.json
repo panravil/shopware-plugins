@@ -1,0 +1,29 @@
+{
+    "name": "change/orderstats",
+    "description": "Change Order Status",
+    "version": "1.1.0",
+    "type": "shopware-platform-plugin",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "4m"
+        }
+    ],
+    "require": {
+        "shopware/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Change\\OrderStatus\\": "src/"
+        }
+    },
+    "extra": {
+        "shopware-plugin-class": "Change\\OrderStatus\\ChangeOrderStatus",
+        "plugin-icon": "src/Resources/config/plugin.png",
+        "copyright": "(c) by 4m",
+        "label": {
+            "de-DE": "Change Order Status",
+            "en-GB": "Change Order Status"
+        }
+    }
+}
