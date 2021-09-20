@@ -9,5 +9,11 @@
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService" />
             <tag name="kernel.event_subscriber"/>
         </service>
+
+        <service id="Koener4m\GroupedScaledPrices\Service\ExampleService" />
+        
+        <service id="Koener4m\GroupedScaledPrices\Service\ExampleServiceDecorator" decorates="Koener4m\GroupedScaledPrices\Service\ExampleService">
+            <argument type="service" id="Koener4m\GroupedScaledPrices\Service\ExampleServiceDecorator.inner" />
+        </service>
     </services>
 </container>
