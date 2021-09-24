@@ -4,10 +4,18 @@
     <label lang="de">Gutschriften Flaschenanzahl</label>
     <label lang="en">Credits number of bottles</label>
 
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <copyright>(c) by 4m</copyright>
     <license>MIT</license>
     <link>http://store.shopware.com</link>
     <author>4m</author>
     <compatibility minVersion="5.3.7"/>
+    <changelog version="1.0.0">
+        <changes lang="de">Erstveröffentlichung</changes>
+        <changes lang="en">First release</changes>
+    </changelog>
+    <changelog version="1.0.1">
+        <changes lang="de">Fix fout van gratis verzending</changes>
+        <changes lang="en">Fix error of free shipping</changes>
+    </changelog>
 </plugin>
