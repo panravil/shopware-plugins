@@ -163,9 +163,9 @@ class Checkout implements SubscriberInterface
         $basket['AmountNumeric'] = $basket['AmountNumeric'] - $data['discount_price'];
         $basket['AmountNetNumeric'] = $basket['AmountNetNumeric'] - $data['discount_price'];
         $basket['DiscountPrice'] = $data['discount_price'];
-
+        
         $sessionID = $basket['content'][0]['sessionID'];
-        $free_shipping_flag = $data['free_shipping_flag'];
+        $free_shipping_flag = $data['free_shipping_flag'] | $this->is_contain_product_shipping_free($basket['content']);
         $this->setShippingFree($sessionID, $free_shipping_flag);
         
         return $basket;
@@ -182,7 +182,7 @@ class Checkout implements SubscriberInterface
             $basket['sShippingcostsNet'] = 0;
             $basket['sShippingcostsWithTax'] = 0;
             $basket['shippingfree'] = 1;
-        }
+        }        
         $basket['DiscountPrice'] = $data['discount_price'];
         $this->discountPrice = $data['discount_price'];
         $args->setReturn($basket);
@@ -194,7 +194,7 @@ class Checkout implements SubscriberInterface
         
         $basket = Shopware()->Modules()->Basket()->sGetBasket();
         $data   = $this->getDiscountData($basket);
-
+        
         if(isset($data['discount_price']) && $data['discount_price'] > 0) {
             $this->service->update('s_order_attributes', 'vmgutschrift', 'integer', [], null, false, $data['discount_price']);
         }
@@ -314,10 +314,18 @@ class Checkout implements SubscriberInterface
 
     public function setShippingFree($sessionID, $free_shipping_flag) {
         $attributes = array(
-            'shippingfree' => 0
+            'shippingfree' => $free_shipping_flag
         );
         Shopware()->Db()->update('s_order_basket', $attributes, array('sessionID = ?' => $sessionID));
         return 0;
+    }
+
+    public function is_contain_product_shipping_free($data) {
+        $temp = false;
+        foreach($data as $item) {
+            if ($item['additional_details']['shippingfree'] ) $temp = true;
+        }
+        return $temp;
     }
 }   
 ?>
