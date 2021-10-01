@@ -181,6 +181,7 @@ class Checkout implements SubscriberInterface
             $basket['sShippingcosts'] = 0;
             $basket['sShippingcostsNet'] = 0;
             $basket['sShippingcostsWithTax'] = 0;
+            $basket['sShippingcostsDifference'] = 0;
             $basket['shippingfree'] = 1;
         }        
         $basket['DiscountPrice'] = $data['discount_price'];
