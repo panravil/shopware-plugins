@@ -12,6 +12,7 @@
     <compatibility minVersion="5.2.0" />
     <description></description>
 
+
     <changelog version="1.1.0">
         <changes lang="de">Erstveröffentlichung</changes>
         <changes lang="en">First release</changes>
