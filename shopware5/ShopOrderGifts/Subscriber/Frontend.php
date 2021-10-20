@@ -453,8 +453,23 @@ class Frontend implements SubscriberInterface
             $gift_articles = $condition['articles'];
 
             if(!empty($gift_articles) && $gift_articles != '') {
+                // $articles = $db->fetchAll(
+                //     "SELECT IFNULL(sum(b.quantity*(if(a.attr34=1,a.attr30,if(a.attr38=1,a.attr23,1)))), 0) as qty
+                //         , IFNULL(sum(b.quantity * b.price), 0) as price
+                //             FROM s_order_basket b
+                //             LEFT JOIN s_articles_details d
+                //             ON d.ordernumber = b.ordernumber
+                //             AND d.articleID = b.articleID
+                //             LEFT JOIN s_articles_attributes a
+                //             ON a.articledetailsID = d.id
+                //             WHERE b.sessionID = ?
+                //             AND b.modus = 0
+                //             AND b.articleID IN (".$gift_articles.")",
+                //     [$sessionID]
+                // );
+                
                 $articles = $db->fetchAll(
-                    "SELECT IFNULL(sum(b.quantity*(if(a.attr34=1,a.attr30,if(a.attr38=1,a.attr23,1)))), 0) as qty
+                    "SELECT IFNULL(b.quantity, 0) as qty
                         , IFNULL(sum(b.quantity * b.price), 0) as price
                             FROM s_order_basket b
                             LEFT JOIN s_articles_details d
