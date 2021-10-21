@@ -454,7 +454,7 @@ class Frontend implements SubscriberInterface
 
             if(!empty($gift_articles) && $gift_articles != '') {
                 $articles = $db->fetchAll(
-                    "SELECT IFNULL(b.quantity*(if(a.attr34=1,a.attr30,1))), 0) as qty
+                    "SELECT IFNULL(b.quantity*(if(a.attr34=1,a.attr30,1)), 0) as qty
                         , IFNULL(sum(b.quantity * b.price), 0) as price
                             FROM s_order_basket b
                             LEFT JOIN s_articles_details d
@@ -565,7 +565,7 @@ class Frontend implements SubscriberInterface
             
             $basketcheck = $db->fetchAll(
                 "SELECT COUNT(*) as total
-                 FROM (SELECT IFNULL(b.quantity*(if(a.attr34=1,a.attr30,1))), 0) as qty
+                 FROM (SELECT IFNULL(b.quantity*(if(a.attr34=1,a.attr30,1)), 0) as qty
                             , IFNULL(sum(b.quantity * b.price), 0) as price
                                 FROM s_order_basket b
                                 LEFT JOIN s_articles_details d
