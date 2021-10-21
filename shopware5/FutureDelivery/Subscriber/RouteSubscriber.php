@@ -28,6 +28,7 @@ class RouteSubscriber implements SubscriberInterface
 			'Enlight_Controller_Action_PostDispatchSecure_Frontend_Listing' => 'onFrontendListing',
             'Theme_Compiler_Collect_Plugin_Javascript' => 'addJsFiles',
 			'Enlight_Controller_Action_PostDispatchSecure_Frontend_Detail' => 'onFrontendDetail',
+			'Enlight_Controller_Action_Frontend_Checkout_Confirm'        => 'onCheckoutConfirm',
 			'Shopware_Controllers_Frontend_Checkout::ajaxAddArticleCartAction::before' => 'onAddArticleInCartBefore',
 			'Shopware_Controllers_Frontend_Checkout::ajaxAddArticleCartAction::after' => 'onAddArticleInCartAfter',
 			'Shopware_Controllers_Frontend_Checkout::changeQuantityAction::before' => 'onChangeQuantityAction',
@@ -52,6 +53,38 @@ class RouteSubscriber implements SubscriberInterface
         $jsFiles = array($this->pluginDirectory . '/Resources/views/frontend/_public/src/js/task.js');
         return new ArrayCollection($jsFiles);
     }
+
+	public function onCheckoutConfirm(\Enlight_Event_EventArgs $args)
+	{
+		$controller = $args->getSubject();
+		$view = $args->getSubject()->View();
+		$basket = Shopware()->Modules()->Basket()->sGetBasket();
+		$basketData = $basket['content'];
+
+        $flag = 0;
+
+		foreach($basketData as $data)
+		{
+			$sql = "SELECT basket_quantity_2,basket_quantity_3 FROM s_order_basket_attributes WHERE basketID = ? ORDER BY id DESC LIMIT 1";
+			$rows = Shopware()->Db()->fetchAll($sql, [$data["id"]]);
+			foreach($rows as $row)
+			{
+				$data["basket_quantity_2"] = $row["basket_quantity_2"];
+				if($data["basket_quantity_2"] > 0) $flag++;
+				$data["basket_quantity_3"] = $row["basket_quantity_3"];
+				if($data["basket_quantity_3"] > 0) $flag++;
+			}
+		}
+
+		if($flag > 0)
+		{
+			Shopware()->Session()->sPaymentID = 4;
+			Shopware()->Front()->Request()->setPost('sPayment', 4);
+			Shopware()->Modules()->Admin()->sUpdatePayment();
+
+			unset(Shopware()->Session()->sDispatch);
+		}
+	}
 	
 	public function onFrontendDetail(Enlight_Event_EventArgs $args)
     {		
