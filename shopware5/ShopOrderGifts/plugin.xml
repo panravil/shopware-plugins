@@ -5,12 +5,13 @@
     <label lang="de">Warenkorb Geschenke - Trendpoint</label>
     <label lang="en">Order Gifts - Trendpoint</label>
 
-    <version>2.0.0</version>
+    <version>2.1.0</version>
     <link>www.trendpoint.ch</link>
     <author>TrendPoint GmbH</author>
     <copyright>TrendPoint GmbH</copyright>
     <compatibility minVersion="5.2.0" />
     <description></description>
+
 
     <changelog version="1.1.0">
         <changes lang="de">Erstveröffentlichung</changes>
@@ -19,6 +20,10 @@
     <changelog version="2.0.0">
         <changes lang="de">Improved streams</changes>
         <changes lang="en">Improved streams</changes>
+    </changelog>
+    <changelog version="2.1.0">
+        <changes lang="de">Improved Cartons only</changes>
+        <changes lang="en">Improved Cartons only</changes>
     </changelog>
 
 </plugin>
