@@ -82,7 +82,7 @@ class RouteSubscriber implements SubscriberInterface
 			Shopware()->Front()->Request()->setPost('sPayment', 4);
 			Shopware()->Modules()->Admin()->sUpdatePayment();
 
-			unset(Shopware()->Session()->sDispatch);
+			// unset(Shopware()->Session()->sDispatch);
 		}
 	}
 	
