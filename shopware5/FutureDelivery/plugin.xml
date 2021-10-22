@@ -6,7 +6,7 @@
 
        <label lang="en">Future Order Delivery</label>
 
-       <version>0.0.1</version>
+       <version>1.0.1</version>
 
        <copyright>(c) by shopware AG</copyright>
 
@@ -17,6 +17,17 @@
        <author></author>
 
        <compatibility minVersion="5.5.0"/>
+
+
+        <changelog version="0.0.1">
+            <changes lang="de">Original release</changes>
+            <changes lang="en">Original release</changes>
+        </changelog>
+        
+        <changelog version="1.0.1">
+            <changes lang="de">Invoice fix</changes>
+            <changes lang="en">Invoice fix</changes>
+        </changelog>
 
 
 
