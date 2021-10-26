@@ -118,7 +118,7 @@ class Checkout implements SubscriberInterface
             'Shopware_Controllers_Frontend_Checkout::getBasket::after' => 'afterGetBasket',
             'Shopware_Modules_Order_SendMail_Filter' => 'modifySOrderMail',
             'Enlight_Controller_Action_Frontend_Checkout_Finish' => 'checkFinishAction',
-            'Shopware_Modules_Order_SendMail_FilterVariables' => 'saveDiscountProduct'
+            'Shopware_Modules_Order_SendMail_FilterVariables' => 'saveDiscountProduct',
         ];
     }
 
@@ -165,6 +165,7 @@ class Checkout implements SubscriberInterface
         $basket['DiscountPrice'] = $data['discount_price'];
         
         $sessionID = $basket['content'][0]['sessionID'];
+
         $free_shipping_flag = $data['free_shipping_flag'] | $this->is_contain_product_shipping_free($basket['content']);
         $this->setShippingFree($sessionID, $free_shipping_flag);
         
@@ -199,6 +200,7 @@ class Checkout implements SubscriberInterface
         if(isset($data['discount_price']) && $data['discount_price'] > 0) {
             $this->service->update('s_order_attributes', 'vmgutschrift', 'integer', [], null, false, $data['discount_price']);
         }
+
         $view->assign([
             'sDiscountPrice'     => $data['discount_price']
         ]);
@@ -220,6 +222,8 @@ class Checkout implements SubscriberInterface
     public function getDiscountData($basket) {
         $total_discount_quantity = 0;
         $total_shipping_quantity = 0;
+        
+        $sessionID = $basket['content'][0]['sessionID'];
 
         foreach($basket['content'] as $item) {
             if(in_array($item['articleID'], $this->discountStreamProducts)) {
@@ -261,7 +265,7 @@ class Checkout implements SubscriberInterface
         $shipping_free_from_value = $this->pluginConfig['shipping_free_from_value'];
 
         $discount_price         = $this->getDiscountPrice($total_discount_quantity, $discount_from_value1, $discount_to_value1, $discount_price1, $discount_from_value2, $discount_to_value2, $discount_price2, $discount_from_value3, $discount_to_value3, $discount_price3);
-        $free_shipping_flag     = $this->checkShippingFree($total_shipping_quantity, $shipping_free_from_value);
+        $free_shipping_flag     = $this->checkShippingFree($total_shipping_quantity, $shipping_free_from_value) | $this->checkVoucher($sessionID);
 
         $data = array(
             'discount_price'     => $discount_price,
@@ -311,6 +315,28 @@ class Checkout implements SubscriberInterface
         } else {
             return false;
         }
+    }
+
+    public function checkVoucher($sessionID) {
+        $vouchers = Shopware()->Db()->fetchAll(
+            'SELECT id basketID, ordernumber, articleID as voucherID
+                FROM s_order_basket
+                WHERE modus = 2 AND sessionID = ?',
+            [$sessionID]
+        );
+        $flag = 0;
+        foreach($vouchers as $voucher)
+        {
+            if (!empty($voucher)) {
+                if(Shopware()->Db()->fetchOne(
+                    'SELECT shippingfree FROM s_emarketing_vouchers WHERE ordercode = ?',
+                    [$voucher['ordernumber']]
+                ) == 1) {
+                    $flag = 1;
+                }
+            }
+        }
+        return $flag;
     }
 
     public function setShippingFree($sessionID, $free_shipping_flag) {
