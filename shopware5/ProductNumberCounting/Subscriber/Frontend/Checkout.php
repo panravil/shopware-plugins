@@ -167,7 +167,7 @@ class Checkout implements SubscriberInterface
         $sessionID = $basket['content'][0]['sessionID'];
 
         $free_shipping_flag = $data['free_shipping_flag'] | $this->is_contain_product_shipping_free($basket['content']);
-        $this->setShippingFree($sessionID, $free_shipping_flag);
+        // $this->setShippingFree($sessionID, $free_shipping_flag);
         
         return $basket;
     }
@@ -175,10 +175,6 @@ class Checkout implements SubscriberInterface
     public function afterGetBasket(\Enlight_Event_EventArgs $args) {
         $basket = $args->getReturn();
         $data   = $this->getDiscountData($basket);
-
-        if($data['free_shipping_flag'] == 0 && $basket['sShippingcosts'] == 0 && count($basket['content']) != 0) {
-            Shopware()->Front()->Response()->setHeader('Refresh', 0);
-        }
         
         if($data['free_shipping_flag']) {
             $basket['AmountNumeric'] = $basket['AmountNumeric'] - $basket['sShippingcosts'];
