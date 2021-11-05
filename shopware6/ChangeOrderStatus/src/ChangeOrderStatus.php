@@ -20,6 +20,21 @@ class ChangeOrderStatus extends Plugin
 
     public function activate(ActivateContext $activateContext): void
     {
+        $connection = $this->container->get(Connection::class);
+
+        $query = "
+        SELECT sms.id INTO @order_progress_id
+        FROM state_machine sm
+        , state_machine_state sms
+        WHERE sm.technical_name='order.state'
+        AND sm.id=sms.`state_machine_id`
+        AND sms.technical_name='in_progress';
+
+        UPDATE `state_machine`
+        SET initial_state_id=@order_progress_id
+        WHERE technical_name='order.state';";
+        $connection->executeQuery($query);
+
         $query = "
         CREATE TRIGGER `order_status_change` 
                     AFTER UPDATE 
@@ -83,9 +98,6 @@ class ChangeOrderStatus extends Plugin
                             END IF;
                         END IF;
                     END;";
-
-        $connection = $this->container->get(Connection::class);
-
         $connection->executeUpdate($query);
 
         parent::activate($activateContext);
@@ -95,6 +107,19 @@ class ChangeOrderStatus extends Plugin
     {
         $connection = $this->container->get(Connection::class);
         $query = "DROP TRIGGER IF EXISTS order_status_change;";
+        $connection->executeQuery($query);
+
+        $query = "
+        SELECT sms.id INTO @order_progress_id
+        FROM state_machine sm
+        , state_machine_state sms
+        WHERE sm.technical_name='order.state'
+        AND sm.id=sms.`state_machine_id`
+        AND sms.technical_name='open';
+
+        UPDATE `state_machine`
+        SET initial_state_id=@order_progress_id
+        WHERE technical_name='order.state';";
         $connection->executeQuery($query);
 
         parent::deactivate($deactivateContext);
