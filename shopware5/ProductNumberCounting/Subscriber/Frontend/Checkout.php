@@ -115,6 +115,7 @@ class Checkout implements SubscriberInterface
         return [
             'Enlight_Controller_Action_Frontend_Checkout_AjaxCart' => 'checkAjaxCartAction',
             'Shopware_Modules_Basket_GetBasket_FilterResult' => 'modifyGetBasket',
+            'Shopware_Controllers_Frontend_Checkout::getBasket::before' => 'beforeGetBasket',
             'Shopware_Controllers_Frontend_Checkout::getBasket::after' => 'afterGetBasket',
             'Shopware_Modules_Order_SendMail_Filter' => 'modifySOrderMail',
             'Enlight_Controller_Action_Frontend_Checkout_Finish' => 'checkFinishAction',
@@ -167,9 +168,13 @@ class Checkout implements SubscriberInterface
         $sessionID = $basket['content'][0]['sessionID'];
 
         $free_shipping_flag = $data['free_shipping_flag'] | $this->is_contain_product_shipping_free($basket['content']);
-        // $this->setShippingFree($sessionID, $free_shipping_flag);
-        
+        $this->setShippingFree($sessionID, $free_shipping_flag);
+                
         return $basket;
+    }
+
+    public function beforeGetBasket(\Enlight_Event_EventArgs $args) {
+        $basket = Shopware()->Modules()->Basket()->sGetBasket();
     }
 
     public function afterGetBasket(\Enlight_Event_EventArgs $args) {
@@ -187,6 +192,7 @@ class Checkout implements SubscriberInterface
         }        
         $basket['DiscountPrice'] = $data['discount_price'];
         $this->discountPrice = $data['discount_price'];
+
         $args->setReturn($basket);
     }
     
