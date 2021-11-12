@@ -23,17 +23,31 @@ class ChangeOrderStatus extends Plugin
         $connection = $this->container->get(Connection::class);
 
         $query = "
-        SELECT sms.id INTO @order_progress_id
-        FROM state_machine sm
-        , state_machine_state sms
-        WHERE sm.technical_name='order.state'
-        AND sm.id=sms.`state_machine_id`
-        AND sms.technical_name='in_progress';
+        CREATE TRIGGER `order_status_insert`
+        AFTER INSERT
+        ON `order_transaction` FOR EACH ROW
+        BEGIN
+            SELECT sms.id INTO @order_progress_id
+            FROM state_machine sm
+            , state_machine_state sms
+            WHERE sm.technical_name='order.state'
+            AND sm.id=sms.state_machine_id
+            AND sms.technical_name='in_progress';
 
-        UPDATE `state_machine`
-        SET initial_state_id=@order_progress_id
-        WHERE technical_name='order.state';";
-        $connection->executeQuery($query);
+            SELECT sc.configuration_value INTO @change_order_status_configuration_value
+            FROM `system_config` sc 
+            where sc.configuration_key='ChangeOrderStatus.config.PaymentMethods' 
+            and sc.sales_channel_id IS NULL;
+
+            SELECT IF(JSON_SEARCH(@change_order_status_configuration_value,'one', LOWER(hex(new.payment_method_id))) IS NOT NULL, 1, 0) INTO @is_ignored_flag;
+
+            IF(@is_ignored_flag = 0) THEN
+                UPDATE `order`
+                SET state_id = @order_progress_id
+                WHERE id = NEW.order_id;
+            END IF;
+        END;";
+        $connection->executeUpdate($query);
 
         $query = "
         CREATE TRIGGER `order_status_change` 
@@ -109,17 +123,7 @@ class ChangeOrderStatus extends Plugin
         $query = "DROP TRIGGER IF EXISTS order_status_change;";
         $connection->executeQuery($query);
 
-        $query = "
-        SELECT sms.id INTO @order_progress_id
-        FROM state_machine sm
-        , state_machine_state sms
-        WHERE sm.technical_name='order.state'
-        AND sm.id=sms.`state_machine_id`
-        AND sms.technical_name='open';
-
-        UPDATE `state_machine`
-        SET initial_state_id=@order_progress_id
-        WHERE technical_name='order.state';";
+        $query = "DROP TRIGGER IF EXISTS order_status_insert;";
         $connection->executeQuery($query);
 
         parent::deactivate($deactivateContext);
