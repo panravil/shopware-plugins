@@ -512,6 +512,81 @@ class Frontend implements SubscriberInterface
                             }
                         }
 
+                        if(count($giftDataArticlesFinal) == 0)
+                        {
+                            foreach($giftDataArticles as $giftDataArticle) {
+                                Shopware()->Db()->query("DELETE FROM s_order_basket WHERE articleID='".$giftDataArticle["id"]."' and sessionID='$sessionID'");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        foreach($gift_conditions as $giftId => $condition)
+        {
+            $gift_articles = $condition['articles'];
+
+            if(!empty($gift_articles) && $gift_articles != '') {
+                $articles = $db->fetchAll(
+                    "SELECT IFNULL(sum(b.quantity*(if(a.attr34=1,a.attr30,1))), 0) as qty
+                        , IFNULL(sum(b.quantity * b.price), 0) as price
+                            FROM s_order_basket b
+                            LEFT JOIN s_articles_details d
+                            ON d.ordernumber = b.ordernumber
+                            AND d.articleID = b.articleID
+                            LEFT JOIN s_articles_attributes a
+                            ON a.articledetailsID = d.id
+                            WHERE b.sessionID = ?
+                            AND b.modus = 0
+                            AND b.articleID IN (".$gift_articles.")",
+                    [$sessionID]
+                );
+                
+                $sql = "SELECT b.id , b.name , c.ordernumber FROM s_articles b inner join s_articles_details as c on b.id = c.articleID where b.id IN (".$condition['gifts'].") AND c.instock > ".$condition['selection_limit'];
+                $giftDataArticles = $db->fetchAll($sql);
+
+                if (count($articles) > 0 && $articles[0]['qty'] > 0) 
+                {
+                    $article['qty'] = $articles[0]['qty'];
+                    $article['price'] = $articles[0]['price'];
+                    if (count($giftDataArticles)) 
+                    {
+                        foreach ($giftDataArticles as &$articleData) {
+                            $articleData['giftId'] = $giftId;
+                            $articleData['quantity'] = ['quantity_from' => $condition['qty_from'], 'quantity_to' => $condition['qty_to']];
+                            $articleData['price'] = ['price_from' => $condition['amt_from'], 'price_to' => $condition['amt_to']];
+                            $giftImages = Shopware()->Modules()->Articles()->getArticleListingCover($articleData['id']);
+                            $articleData['Image'] = $giftImages['src'];
+                            $articleData['giftParentOrderNumber'] = $gift_articles;
+                        }
+
+                        $taken_gift = 0;
+                        $giftDataArticlesFinal = [];
+
+                        foreach($giftDataArticles as $giftDataArticle)
+                        {
+                            if(isset($articles[0]['qty']))
+                            {
+                                $qf = (int)$giftDataArticle['quantity']['quantity_from'];
+                                $qt = (int)$giftDataArticle['quantity']['quantity_to'];
+
+                                $price_from = (int)$giftDataArticle['price']['price_from'];
+                                $price_to   = (int)$giftDataArticle['price']['price_to'];
+
+                                if(($articles[0]['qty'] >= $qf && $articles[0]['qty'] <= $qt) || ($articles[0]['price'] >= $price_from && $articles[0]['price'] <= $price_to))
+                                {
+                                    $giftDataArticlesFinal[] = $giftDataArticle;
+                                    $sql = "SELECT sum(quantity) as basketGiftQuantity FROM s_order_basket WHERE modus = 5 and ordernumber='".$giftDataArticle["ordernumber"]."' and sessionID='$sessionID'";
+
+                                    $basketGiftQuantity = $db->fetchAll($sql);
+
+                                    if(isset($basketGiftQuantity[0]['basketGiftQuantity']) && $basketGiftQuantity[0]['basketGiftQuantity']>0)
+                                        $taken_gift += $basketGiftQuantity[0]['basketGiftQuantity'];
+                                }
+                            }
+                        }
+
                         if(count($giftDataArticlesFinal) > 0)
                         {
                             $giftId = $giftDataArticlesFinal[0]['giftId'];
@@ -540,10 +615,6 @@ class Frontend implements SubscriberInterface
                                     Shopware()->Modules()->Basket()->sAddArticle($giftDataArticlesFinal[0]["ordernumber"], $gift_selection_limit-$taken_gift);
                                     Shopware()->Modules()->Basket()->sRefreshBasket();
                                 }
-                            }
-                        } else {
-                            foreach($giftDataArticles as $giftDataArticle) {
-                                Shopware()->Db()->query("DELETE FROM s_order_basket WHERE articleID='".$giftDataArticle["id"]."' and sessionID='$sessionID'");
                             }
                         }
                     }
