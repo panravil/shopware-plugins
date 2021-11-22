@@ -33,5 +33,9 @@
         <changes lang="de">More packets - more gifts</changes>
         <changes lang="en">More packets - more gifts</changes>
     </changelog>
+    <changelog version="2.2.2">
+        <changes lang="de">Fix products and products streams</changes>
+        <changes lang="en">Fix products and products streams</changes>
+    </changelog>
 
 </plugin>
