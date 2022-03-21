@@ -66,7 +66,6 @@ class Frontend implements SubscriberInterface
 			'Theme_Compiler_Collect_Plugin_Javascript'                  => 'addJsFiles',
 			'Theme_Compiler_Collect_Plugin_Css'                         => 'addCssFiles',
             'Enlight_Controller_Action_PostDispatch_Frontend_Detail'    => 'getGiftByArticleId',
-            'Enlight_Controller_Action_Frontend_Checkout_Cart'      => 'cartAction',
             'sBasket::sAddArticle::after'                               => 'addArticle',
             'sBasket::sDeleteArticle::after'                            => 'deleteArticle',
 			'Shopware_Controllers_Frontend_Checkout::changeQuantityAction::after' => 'onChangeQuantityAfter'
@@ -118,25 +117,6 @@ class Frontend implements SubscriberInterface
         Shopware()->Modules()->Basket()->sRefreshBasket();
     }
 
-    public function cartAction(\Enlight_Event_EventArgs $args)
-    {
-        $basket = Shopware()->Modules()->Basket()->sGetBasket();
-        $controller     = $args->getSubject();
-        $request        = $controller->Request();
-        $view           = $controller->View();
-
-        if (count($basket['content']) >= 1) {
-            $id = $basket['content'][count($basket['content']) - 1]["articleID"];
-            $categoryId = Shopware()->Modules()->Categories()->sGetCategoryIdByArticleId($id);
-            $sArticle = Shopware()->Modules()->Articles()->sGetArticleById($id, $categoryId);
-
-            $view->assign([
-                'sArticle'     => $sArticle
-            ]);
-        }
-    }
-
-	
 	public function getGiftOrderNumberByArticleIdAndQuantity($articleId,$currentCartQuantity,$include = true)
 	{
 		$db = Shopware()->Db();
