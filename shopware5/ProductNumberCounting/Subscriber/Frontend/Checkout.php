@@ -14,6 +14,7 @@ class Checkout implements SubscriberInterface
     private $discountStreamProducts;
     private $shippingStreamProducts;
     private $discountPrice;
+    private $freeShippingLimit;
 
     public function __construct(ContainerInterface $container)
     {
@@ -27,6 +28,8 @@ class Checkout implements SubscriberInterface
             );
  
             $discountStreamId = $this->pluginConfig['selectDiscountProductStream'];
+
+            $this->freeShippingLimit = $this->pluginConfig['shipping_free_from_value'];
 
             $conditions = Shopware()->Container()->get('dbal_connection')->createQueryBuilder()
                     ->select('conditions')
@@ -118,9 +121,22 @@ class Checkout implements SubscriberInterface
             'Shopware_Controllers_Frontend_Checkout::getBasket::before' => 'beforeGetBasket',
             'Shopware_Controllers_Frontend_Checkout::getBasket::after' => 'afterGetBasket',
             'Shopware_Modules_Order_SendMail_Filter' => 'modifySOrderMail',
+            'Enlight_Controller_Action_Frontend_Checkout_Cart'      => 'cartAction',
             'Enlight_Controller_Action_Frontend_Checkout_Finish' => 'checkFinishAction',
             'Shopware_Modules_Order_SendMail_FilterVariables' => 'saveDiscountProduct',
         ];
+    }
+
+    public function cartAction(\Enlight_Event_EventArgs $args)
+    {
+        $basket = Shopware()->Modules()->Basket()->sGetBasket();
+        $controller     = $args->getSubject();
+        $request        = $controller->Request();
+        $view           = $controller->View();
+
+        $view->assign([
+            'freeShippingLimit' => $this->freeShippingLimit
+        ]);
     }
 
     public function modifySOrderMail(\Enlight_Event_EventArgs $args) {
