@@ -7,10 +7,10 @@
 			{$basketCnt = $basketCnt + $sBasket.content[$index++].quantity}
         {/foreach}
 		{if ($freeShippingLimit - $basketCnt) > 1}
-			{$shippingDifferenceContent="{s namespace="frontend/ProductNumberCounting/ShippingFreeNotification" name='CartInfoFreeShippingDifferenceHeader'}{/s} {$sShippingcostsDifference|currency} {s namespace="frontend/ProductNumberCounting/ShippingFreeNotification" name='CartInfoFreeShippingDifferenceContent'}{/s} {$freeShippingLimit - $basketCnt} {s namespace="frontend/ProductNumberCounting/ShippingFreeNotification" name='CartInfoFreeShippingDifferencePlural'}{/s}"}
+			{$shippingDifferenceContent="<strong>{s name='CartInfoFreeShipping'}{/s}</strong> {s namespace="frontend/ProductNumberCounting/ShippingFreeNotification" name='CartInfoFreeShippingDifferenceHeader'}{/s} {$sShippingcostsDifference|currency} {s namespace="frontend/ProductNumberCounting/ShippingFreeNotification" name='CartInfoFreeShippingDifferenceContent'}{/s} {$freeShippingLimit - $basketCnt} {s namespace="frontend/ProductNumberCounting/ShippingFreeNotification" name='CartInfoFreeShippingDifferencePlural'}{/s}"}
 			{include file="frontend/_includes/messages.tpl" type="warning" content="{$shippingDifferenceContent}"}
 		{else}
-			{$shippingDifferenceContent="{s namespace="frontend/ProductNumberCounting/ShippingFreeNotification" name='CartInfoFreeShippingDifferenceHeader'}{/s} {$sShippingcostsDifference|currency} {s namespace="frontend/ProductNumberCounting/ShippingFreeNotification" name='CartInfoFreeShippingDifferenceContent'}{/s} {$freeShippingLimit - $basketCnt} {s namespace="frontend/ProductNumberCounting/ShippingFreeNotification" name='CartInfoFreeShippingDifferenceSingular'}{/s}"}
+			{$shippingDifferenceContent="<strong>{s name='CartInfoFreeShipping'}{/s}</strong> {s namespace="frontend/ProductNumberCounting/ShippingFreeNotification" name='CartInfoFreeShippingDifferenceHeader'}{/s} {$sShippingcostsDifference|currency} {s namespace="frontend/ProductNumberCounting/ShippingFreeNotification" name='CartInfoFreeShippingDifferenceContent'}{/s} {$freeShippingLimit - $basketCnt} {s namespace="frontend/ProductNumberCounting/ShippingFreeNotification" name='CartInfoFreeShippingDifferenceSingular'}{/s}"}
 			{include file="frontend/_includes/messages.tpl" type="warning" content="{$shippingDifferenceContent}"}
 		{/if}
 	{/if}
